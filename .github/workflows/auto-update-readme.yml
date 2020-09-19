@@ -1,0 +1,32 @@
+# This workflow will install Python dependencies and update README.md
+
+name: Auto-Update Tables
+
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '0 * * * *'
+  push:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Update README.md
+      run: |
+        python update_readme.py ${{ secrets.OPEN_WEATHER_API_KEY }}
+    - name: Commit changes and push if changed
+      run: |-
+        git add .
+        git diff
+        git config user.name 'Github Actions'
+        git config user.email 'actions@github.com'
+        git commit -m "Automatic README.md update" -a || echo "No changes to commit"
+        git push
