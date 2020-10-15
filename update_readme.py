@@ -1,25 +1,120 @@
 import sys
+import io
 import ssl
 import json
+import pandas
+import datetime
 import posixpath
 import urllib.request
+
+def convert_delta_time(delta_time, epoch1=None, epoch2=None, scale=1.0):
+    """
+    Convert delta time from seconds since epoch1 to time since epoch2
+
+    Arguments
+    ---------
+    delta_time: seconds since epoch1
+
+    Keyword arguments
+    -----------------
+    epoch1: epoch for input delta_time
+    epoch2: epoch for output delta_time
+    scale: scaling factor for converting time to output units
+    """
+    epoch1 = datetime.datetime(*epoch1)
+    epoch2 = datetime.datetime(*epoch2)
+    delta_time_epochs = (epoch2 - epoch1).total_seconds()
+    #-- subtract difference in time and rescale to output units
+    return scale*(delta_time - delta_time_epochs)
 
 def update_readme(lat,lon,open_weather_api_key):
     fid = open("README.md","w")
     with open('readme.ini','r') as f:
         fid.write(f.read())
 
+    # estimate ICESat-2 live shot count
+    fid.write("\n#### [ICESat-2 Shot Counter]")
+    fid.write("(https://i.imgur.com/XAlIAMV.jpg)\n")
+    # number of GPS seconds between the GPS epoch and ATLAS SDP epoch
+    atlas_sdp_gps_epoch = 1198800018.0
+    # number of GPS seconds since the GPS epoch for first ATLAS data point
+    atlas_gps_start_time = atlas_sdp_gps_epoch + 24710205.39202261
+    # convert from GPS time to UNIX
+    atlas_start_time = convert_delta_time(atlas_gps_start_time,
+        epoch1=(1980,1,6,0,0,0),epoch2=(1970,1,1,0,0,0))
+    # present day
+    present_time = datetime.datetime.now()
+    # try downloading and reading the ATLAS data gap file
+    try:
+        # download excel file with ATLAS data gaps
+        atlas_data_gap_url = ['https://nsidc.org','sites','nsidc.org',
+            'files','technical-references','ICESat-2_data_gaps_rel003.xlsx']
+        atlas_request = urllib.request.Request(posixpath.join(*atlas_data_gap_url))
+        response = urllib.request.urlopen(atlas_request,context=ssl.SSLContext())
+    except:
+        # read json to get previously calculated gap duration
+        # to be read in case of NSIDC downtime or other url access error
+        with open('IS2-shot-count.json','r') as f:
+            atlas_shot_count = json.load(f)
+        gap_duration = float(atlas_shot_count['gap-duration'])
+    else:
+        # read data gap file
+        atlas_data_gap = pandas.read_excel(io.BytesIO(response.read()),header=2)
+        # parse each row and calculate the total data gap
+        gap_duration = 0.0
+        TIME = [None,None]
+        for i,row in atlas_data_gap.iterrows():
+            # extract start time
+            try:
+                TIME[0] = datetime.datetime.combine(row['DATE'],row['START (UTC)'])
+            except TypeError:
+                pass
+            # extract end time
+            try:
+                TIME[1] = datetime.datetime.combine(row['DATE'],row['END (UTC)'])
+            except TypeError:
+                pass
+            # if there is a start and end time
+            # there can be neither a start or end time for an empty row
+            # there can be a start time and no end time for the start of a large gap
+            # there can be a end time and no start time for the end of a large gap
+            if all(TIME):
+                # calculate the duration between the start and end times
+                DURATION = (TIME[1] - TIME[0]).total_seconds()
+                # for short gaps near midnight the times may be on the same line
+                if (DURATION < 0):
+                    gap_duration += (DURATION + 86400.0)
+                else:
+                    gap_duration += DURATION
+                # reset time list
+                TIME = [None,None]
+    # calculate total number of shots
+    shot_total=1e4*round(present_time.timestamp()-atlas_start_time-gap_duration)
+    now=present_time.strftime('%Y-%m-%d %I%p%Z')
+    fid.write('**Estimate:** {0:0.0f} (updated {1})  \n'.format(shot_total,now))
+    # print to json for using as badge
+    shot_dict = {"label": "ICESat-2 shots",
+        "message":str(int(shot_total)),
+        "start-time":str(atlas_start_time),
+        "gap-duration":str(gap_duration),
+        "last-modified":now}
+    with open('IS2-shot-count.json','w') as f:
+        print(json.dumps(shot_dict), file=f)
+
     # get weather from UW atmos roof station
     roof_url = 'https://roof.atmos.washington.edu/roof.txt'
     roof_request = urllib.request.Request(roof_url)
     response = urllib.request.urlopen(roof_request,context=ssl.SSLContext())
     roof_content = response.read().decode('utf-8').split()
-    roof_time = roof_content[0]
-    roof_temperature = roof_content[1]
-    roof_wind_direction = roof_content[2]
-    roof_wind_speed = roof_content[3]
-    roof_pressure = roof_content[4]
-    roof_relative_humidity = roof_content[5]
+    try:
+        roof_time = roof_content[0]
+        roof_temperature = roof_content[1]
+        roof_wind_direction = roof_content[2]
+        roof_wind_speed = roof_content[3]
+        roof_pressure = roof_content[4]
+        roof_relative_humidity = roof_content[5]
+    except:
+        roof_pressure = ''
 
     # get weather from open weather API at coordinates of UW atmos building
     args = (lat,lon,open_weather_api_key)
@@ -50,17 +145,20 @@ def update_readme(lat,lon,open_weather_api_key):
     fid.write('{0}  \n'.format(''.join(icons)))
     fid.write('**Conditions:** {0}  \n'.format(', '.join(descriptions)))
     # use open weather data if roof station returns invalid data
-    if (roof_pressure == '0%'):
+    if roof_pressure in ('','0%'):
         fid.write('**Temperature:** {0:0.0f}F  \n'.format(open_temperature))
         fid.write('**Humidity:** {0:0.0f}%  \n'.format(open_humidity))
         fid.write('**Wind:** {0:0.0f}mph {1}  \n'.format(open_wind_speed,open_wind_direction))
-        fid.write('**Pressure:** {0:0.0f}mb  \n'.format(open_pressure))
     else:
         fid.write('**Temperature:** {0}  \n'.format(roof_temperature))
         fid.write('**Humidity:** {0}  \n'.format(roof_relative_humidity))
         fid.write('**Wind:** {0} {1}  \n'.format(roof_wind_speed,roof_wind_direction))
+    # use open weather data if roof station returns invalid pressure data
+    if roof_pressure in ('','0%','0.00mb'):
+        fid.write('**Pressure:** {0:0.0f}mb  \n'.format(open_pressure))
+    else:
         fid.write('**Pressure:** {0}  \n'.format(roof_pressure))
 
-#-- run update readme with seattle weather program
+#-- run update readme with ICESat-2 shot and Seattle weather program
 if __name__ == '__main__':
 	update_readme(47.653889, -122.309444, sys.argv[1])
