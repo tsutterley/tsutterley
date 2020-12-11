@@ -51,13 +51,6 @@ def update_readme(lat,lon,open_weather_api_key):
             'files','technical-references','ICESat-2_data_gaps_rel003.xlsx']
         atlas_request = urllib.request.Request(posixpath.join(*atlas_data_gap_url))
         response = urllib.request.urlopen(atlas_request,context=ssl.SSLContext())
-    except:
-        # read json to get previously calculated gap duration
-        # to be read in case of NSIDC downtime or other url access error
-        with open('IS2-shot-count.json','r') as f:
-            atlas_shot_count = json.load(f)
-        gap_duration = float(atlas_shot_count['gap-duration'])
-    else:
         # read data gap file
         atlas_data_gap = pandas.read_excel(io.BytesIO(response.read()),header=2)
         # parse each row and calculate the total data gap
@@ -88,6 +81,13 @@ def update_readme(lat,lon,open_weather_api_key):
                     gap_duration += DURATION
                 # reset time list
                 TIME = [None,None]
+    except:
+        # read json to get previously calculated gap duration
+        # to be read in case of NSIDC downtime or other url access error
+        with open('IS2-shot-count.json','r') as f:
+            atlas_shot_count = json.load(f)
+        gap_duration = float(atlas_shot_count['gap-duration'])
+
     # calculate total number of shots
     shot_total=1e4*round(present_time.timestamp()-atlas_start_time-gap_duration)
     now=present_time.strftime('%Y-%m-%d %I%p%Z')
