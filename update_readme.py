@@ -48,11 +48,12 @@ def update_readme(lat,lon,open_weather_api_key):
     try:
         # download excel file with ATLAS data gaps
         atlas_data_gap_url = ['https://nsidc.org','sites','nsidc.org',
-            'files','technical-references','ICESat-2_data_gaps_rel003.xlsx']
+            'files','technical-references','ICESat-2_data_gaps.xlsx']
         atlas_request = urllib.request.Request(posixpath.join(*atlas_data_gap_url))
         response = urllib.request.urlopen(atlas_request,context=ssl.SSLContext())
         # read data gap file
-        atlas_data_gap = pandas.read_excel(io.BytesIO(response.read()),header=2)
+        atlas_data_gap = pandas.read_excel(io.BytesIO(response.read()),header=2,
+            engine='openpyxl')
         # parse each row and calculate the total data gap
         gap_duration = 0.0
         TIME = [None,None]

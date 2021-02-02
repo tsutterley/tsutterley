@@ -22,7 +22,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --upgrade pip
-        pip install xlrd numpy python-dateutil pandas
+        pip install xlrd openpyxl numpy python-dateutil pandas
     - name: Update README.md
       run: |
         python update_readme.py ${{ secrets.OPEN_WEATHER_API_KEY }}
