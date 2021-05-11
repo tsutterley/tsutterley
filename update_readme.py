@@ -1,5 +1,6 @@
 import sys
 import io
+import re
 import ssl
 import json
 import pandas
@@ -43,7 +44,9 @@ def update_readme(lat,lon,open_weather_api_key):
     atlas_start_time = convert_delta_time(atlas_gps_start_time,
         epoch1=(1980,1,6,0,0,0),epoch2=(1970,1,1,0,0,0))
     # present day
-    present_time = datetime.datetime.now()
+    present_time = datetime.datetime.now(tz=datetime.timezone.utc)
+    # regular expression string for extracting duration for cells with days
+    rx = re.compile(r'(\d+)\sday[s]?,\s+(\d+)\:(\d+)\:(\d+)', re.VERBOSE)
     # try downloading and reading the ATLAS data gap file
     try:
         # download excel file with ATLAS data gaps
@@ -58,6 +61,9 @@ def update_readme(lat,lon,open_weather_api_key):
         gap_duration = 0.0
         TIME = [None,None]
         for i,row in atlas_data_gap.iterrows():
+            # end iteration if all are empty
+            if pandas.isnull(row.values).all():
+                break
             # extract start time
             try:
                 TIME[0] = datetime.datetime.combine(row['DATE'],row['START (UTC)'])
@@ -68,11 +74,26 @@ def update_readme(lat,lon,open_weather_api_key):
                 TIME[1] = datetime.datetime.combine(row['DATE'],row['END (UTC)'])
             except TypeError:
                 pass
+            # duration for row
+            DURATION = 0
+            try:
+                DURATION = datetime.timedelta(
+                    hours=row['GAP DURATION'].hour,
+                    minutes=row['GAP DURATION'].minute,
+                    seconds=row['GAP DURATION'].second).total_seconds()
+            except:
+                days,hours,minutes,seconds = rx.findall(row['GAP DURATION']).pop()
+                DURATION = datetime.timedelta(days=int(days),
+                    hours=int(hours),minutes=int(minutes),
+                    seconds=int(seconds)).total_seconds()
+
             # if there is a start and end time
             # there can be neither a start or end time for an empty row
             # there can be a start time and no end time for the start of a large gap
             # there can be a end time and no start time for the end of a large gap
-            if all(TIME):
+            if DURATION:
+                gap_duration += DURATION
+            elif all(TIME):
                 # calculate the duration between the start and end times
                 DURATION = (TIME[1] - TIME[0]).total_seconds()
                 # for short gaps near midnight the times may be on the same line
@@ -91,7 +112,7 @@ def update_readme(lat,lon,open_weather_api_key):
 
     # calculate total number of shots
     shot_total=1e4*round(present_time.timestamp()-atlas_start_time-gap_duration)
-    now=present_time.strftime('%Y-%m-%d %I%p%Z')
+    now=present_time.strftime('%Y-%m-%d %I%p %Z')
     fid.write('**Estimate:** {0:0.0f} (updated {1})  \n'.format(shot_total,now))
     # print to json for using as badge
     shot_dict = {"label": "ICESat-2 shots",
