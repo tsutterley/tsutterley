@@ -25,7 +25,7 @@ def convert_delta_time(delta_time, epoch1=None, epoch2=None, scale=1.0):
     epoch1 = datetime.datetime(*epoch1)
     epoch2 = datetime.datetime(*epoch2)
     delta_time_epochs = (epoch2 - epoch1).total_seconds()
-    #-- subtract difference in time and rescale to output units
+    # subtract difference in time and rescale to output units
     return scale*(delta_time - delta_time_epochs)
 
 def update_readme(lat,lon,open_weather_api_key):
@@ -34,8 +34,9 @@ def update_readme(lat,lon,open_weather_api_key):
         fid.write(f.read())
 
     # estimate ICESat-2 live shot count
-    fid.write("\n#### [ICESat-2 Shot Counter]")
-    fid.write("(https://i.imgur.com/XAlIAMV.jpg)\n")
+    fid.write("\n#### [ICESat-2 Shot Counter](./assets/XAlIAMV.jpeg)  \n")
+    # estimate of number of shots during prelaunch testing
+    prelaunch_shots = 18419770000
     # number of GPS seconds between the GPS epoch and ATLAS SDP epoch
     atlas_sdp_gps_epoch = 1198800018.0
     # number of GPS seconds since the GPS epoch for first ATLAS data point
@@ -111,9 +112,11 @@ def update_readme(lat,lon,open_weather_api_key):
         gap_duration = float(atlas_shot_count['gap-duration'])
 
     # calculate total number of shots
-    shot_total=1e4*round(present_time.timestamp()-atlas_start_time-gap_duration)
-    now=present_time.strftime('%Y-%m-%d %I%p %Z')
+    operational_time = present_time.timestamp() - atlas_start_time - gap_duration
+    shot_total = 1e4*round(operational_time) + prelaunch_shots
+    now = present_time.strftime('%Y-%m-%d %I%p %Z')
     fid.write('**Estimate:** {0:0.0f} (updated {1})  \n'.format(shot_total,now))
+    # fid.write('**Note:** does not take into account shots from pre-launch testing  \n')
     # print to json for using as badge
     shot_dict = {"label": "ICESat-2 shots",
         "message":str(int(shot_total)),
@@ -124,12 +127,12 @@ def update_readme(lat,lon,open_weather_api_key):
         print(json.dumps(shot_dict), file=f)
 
     # get weather from UW atmos roof station
+    # https://atmos.uw.edu/wp-content/themes/coenv-atmos/js/forecast_new.js
     roof_url = 'https://roof.atmos.washington.edu/roof.txt'
-    roof_request = urllib.request.Request(roof_url)
-    response = urllib.request.urlopen(roof_request,context=ssl.SSLContext())
-    roof_content = response.read().decode('utf-8').split()
     try:
-        roof_time = roof_content[0]
+        roof_request = urllib.request.Request(roof_url)
+        response = urllib.request.urlopen(roof_request,context=ssl.SSLContext())
+        roof_content = response.read().decode('utf-8').split()
         roof_temperature = roof_content[1]
         roof_wind_direction = roof_content[2]
         roof_wind_speed = roof_content[3]
@@ -181,6 +184,6 @@ def update_readme(lat,lon,open_weather_api_key):
     else:
         fid.write('**Pressure:** {0}  \n'.format(roof_pressure))
 
-#-- run update readme with ICESat-2 shot and Seattle weather program
+# run update readme with ICESat-2 shot and Seattle weather program
 if __name__ == '__main__':
 	update_readme(47.653889, -122.309444, sys.argv[1])

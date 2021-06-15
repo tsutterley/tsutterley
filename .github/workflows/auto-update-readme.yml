@@ -1,28 +1,41 @@
 # This workflow will install Python dependencies and update README.md
 
-name: Auto-Update Tables
+name: Auto-Update Files
 
 on:
   schedule:
     # * is a special character in YAML so you have to quote this string
     - cron:  '0 * * * *'
   push:
+  workflow_dispatch:
 
 jobs:
   build:
 
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.11]
+    env:
+      OS: ${{ matrix.os }}
+      PYTHON: ${{ matrix.python-version }}
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up mamba ${{ matrix.python-version }}
+      uses: mamba-org/setup-micromamba@v1
       with:
-        python-version: 3.8
-    - name: Install dependencies
-      run: |
-        pip install --upgrade pip
-        pip install xlrd openpyxl numpy python-dateutil pandas
+        micromamba-version: 'latest'
+        environment-file: environment.yml
+        init-shell: bash
+        environment-name: tsutterley
+        cache-environment: true
+        post-cleanup: 'all'
+        create-args: python=${{ matrix.python-version }}
     - name: Update README.md
       run: |
         python update_readme.py ${{ secrets.OPEN_WEATHER_API_KEY }}

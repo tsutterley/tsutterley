@@ -1,0 +1,10 @@
+name: tsutterley
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - openpyxl
+  - pandas
+  - python>=3.6
+  - python-dateutil
+  - xlrd
