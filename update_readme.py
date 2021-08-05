@@ -124,12 +124,12 @@ def update_readme(lat,lon,open_weather_api_key):
         print(json.dumps(shot_dict), file=f)
 
     # get weather from UW atmos roof station
+    # https://atmos.uw.edu/wp-content/themes/coenv-atmos/js/forecast_new.js
     roof_url = 'https://roof.atmos.washington.edu/roof.txt'
-    roof_request = urllib.request.Request(roof_url)
-    response = urllib.request.urlopen(roof_request,context=ssl.SSLContext())
-    roof_content = response.read().decode('utf-8').split()
     try:
-        roof_time = roof_content[0]
+        roof_request = urllib.request.Request(roof_url)
+        response = urllib.request.urlopen(roof_request,context=ssl.SSLContext())
+        roof_content = response.read().decode('utf-8').split()
         roof_temperature = roof_content[1]
         roof_wind_direction = roof_content[2]
         roof_wind_speed = roof_content[3]
