@@ -25,7 +25,7 @@ def convert_delta_time(delta_time, epoch1=None, epoch2=None, scale=1.0):
     epoch1 = datetime.datetime(*epoch1)
     epoch2 = datetime.datetime(*epoch2)
     delta_time_epochs = (epoch2 - epoch1).total_seconds()
-    #-- subtract difference in time and rescale to output units
+    # subtract difference in time and rescale to output units
     return scale*(delta_time - delta_time_epochs)
 
 def update_readme(lat,lon,open_weather_api_key):
@@ -181,6 +181,6 @@ def update_readme(lat,lon,open_weather_api_key):
     else:
         fid.write('**Pressure:** {0}  \n'.format(roof_pressure))
 
-#-- run update readme with ICESat-2 shot and Seattle weather program
+# run update readme with ICESat-2 shot and Seattle weather program
 if __name__ == '__main__':
 	update_readme(47.653889, -122.309444, sys.argv[1])
