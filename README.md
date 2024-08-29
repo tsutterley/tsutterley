@@ -9,12 +9,12 @@ I am typically writing code in Python or making corny jokes on Slack :roll_eyes:
 Ask me about NASA's [ICESat-2](https://icesat-2.gsfc.nasa.gov/) or [GRACE-FO](https://www.nasa.gov/missions/grace-fo) missions!
 
 #### [ICESat-2 Shot Counter](https://i.imgur.com/XAlIAMV.jpg)
-**Estimate:** 1815445790000 (updated 2024-08-29 10AM UTC)  
+**Estimate:** 1815481820000 (updated 2024-08-29 11AM UTC)  
 
 #### [Current Weather at the University of Washington](https://www.washington.edu/cambots/camera1_l.jpg)
 ![weather](http://openweathermap.org/img/wn/01n@2x.png)  
 **Conditions:** Clear sky  
 **Temperature:** 57F  
-**Humidity:** 74%  
-**Wind:** 4mph NW  
-**Pressure:** 1021.80mb  
+**Humidity:** 77%  
+**Wind:** 5mph NW  
+**Pressure:** 1022.00mb  
