@@ -114,6 +114,7 @@ def update_readme(lat,lon,open_weather_api_key):
     shot_total=1e4*round(present_time.timestamp()-atlas_start_time-gap_duration)
     now=present_time.strftime('%Y-%m-%d %I%p %Z')
     fid.write('**Estimate:** {0:0.0f} (updated {1})  \n'.format(shot_total,now))
+    fid.write('**Note:** does not take into account shots from pre-launch testing  \n')
     # print to json for using as badge
     shot_dict = {"label": "ICESat-2 shots",
         "message":str(int(shot_total)),
