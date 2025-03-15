@@ -34,8 +34,9 @@ def update_readme(lat,lon,open_weather_api_key):
         fid.write(f.read())
 
     # estimate ICESat-2 live shot count
-    fid.write("\n#### [ICESat-2 Shot Counter]")
-    fid.write("(https://i.imgur.com/XAlIAMV.jpg)\n")
+    fid.write("\n#### [ICESat-2 Shot Counter](./assets/XAlIAMV.jpeg)  \n")
+    # estimate of number of shots during prelaunch testing
+    prelaunch_shots = 18419770000
     # number of GPS seconds between the GPS epoch and ATLAS SDP epoch
     atlas_sdp_gps_epoch = 1198800018.0
     # number of GPS seconds since the GPS epoch for first ATLAS data point
@@ -111,10 +112,11 @@ def update_readme(lat,lon,open_weather_api_key):
         gap_duration = float(atlas_shot_count['gap-duration'])
 
     # calculate total number of shots
-    shot_total=1e4*round(present_time.timestamp()-atlas_start_time-gap_duration)
-    now=present_time.strftime('%Y-%m-%d %I%p %Z')
+    operational_time = present_time.timestamp() - atlas_start_time - gap_duration
+    shot_total = 1e4*round(operational_time) + prelaunch_shots
+    now = present_time.strftime('%Y-%m-%d %I%p %Z')
     fid.write('**Estimate:** {0:0.0f} (updated {1})  \n'.format(shot_total,now))
-    fid.write('**Note:** does not take into account shots from pre-launch testing  \n')
+    # fid.write('**Note:** does not take into account shots from pre-launch testing  \n')
     # print to json for using as badge
     shot_dict = {"label": "ICESat-2 shots",
         "message":str(int(shot_total)),
