@@ -28,11 +28,18 @@ def convert_delta_time(delta_time, epoch1=None, epoch2=None, scale=1.0):
     # subtract difference in time and rescale to output units
     return scale*(delta_time - delta_time_epochs)
 
-def update_readme(lat,lon,open_weather_api_key):
+def update_readme(lat, lon, open_weather_api_key):
+    # open readme file
     fid = open("README.md","w")
     with open('readme.ini','r') as f:
         fid.write(f.read())
+    # update ICESat-2 shot count and Seattle weather
+    update_shot_count(fid)
+    # update_seattle_weather(fid, lat, lon, open_weather_api_key)
+    # close readme file
+    fid.close()
 
+def update_shot_count(fid):
     # estimate ICESat-2 live shot count
     fid.write("\n#### [ICESat-2 Shot Counter](./assets/XAlIAMV.jpeg)  \n")
     # estimate of number of shots during prelaunch testing
@@ -126,6 +133,7 @@ def update_readme(lat,lon,open_weather_api_key):
     with open('IS2-shot-count.json','w') as f:
         print(json.dumps(shot_dict), file=f)
 
+def update_seattle_weather(fid, lat, lon, open_weather_api_key):
     # get weather from UW atmos roof station
     # https://atmos.uw.edu/wp-content/themes/coenv-atmos/js/forecast_new.js
     roof_url = 'https://roof.atmos.washington.edu/roof.txt'
