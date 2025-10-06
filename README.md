@@ -9,4 +9,4 @@ I am typically writing code in Python or making corny jokes on Slack :roll_eyes:
 Ask me about NASA's [ICESat-2](https://icesat-2.gsfc.nasa.gov/) or [GRACE-FO](https://www.nasa.gov/missions/grace-fo) missions!
 
 #### [ICESat-2 Shot Counter](./assets/XAlIAMV.jpeg)  
-**Estimate:** 2182170100000 (updated 2025-10-06 01PM UTC)  
+**Estimate:** 2182201740000 (updated 2025-10-06 02PM UTC)  
