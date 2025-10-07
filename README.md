@@ -2,7 +2,9 @@
 
 I'm a Research Scientist and geodesist at the UW APL Polar Science Center :snowman_with_snow:
 
-<img src="./assets/PSC_logo_2025_round.png" alt="PSC" width="200"/>
+<a href="https://psc.apl.uw.edu/people/investigators/tyler-sutterley/">
+    <img src="./assets/PSC_logo_2025_round.png" alt="PSC" width="200"/>
+</a>
 
 I am typically writing code in Python or making corny jokes on Slack :roll_eyes:
 
