@@ -195,4 +195,5 @@ def update_seattle_weather(fid, lat, lon, open_weather_api_key):
 
 # run update readme with ICESat-2 shot and Seattle weather program
 if __name__ == '__main__':
-	update_readme(47.653889, -122.309444, sys.argv[1])
+    open_weather_api_key = sys.argv[1] if (len(sys.argv) > 1) else ''
+    update_readme(47.653889, -122.309444, open_weather_api_key)
