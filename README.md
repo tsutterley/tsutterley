@@ -10,4 +10,4 @@ I am typically writing code in Python or making corny jokes on Slack :roll_eyes:
 
 Ask me about NASA's [ICESat-2](https://icesat-2.gsfc.nasa.gov/) or [GRACE-FO](https://www.nasa.gov/missions/grace-fo) missions!
 
-**[ICESat-2 Shot Count Estimate](./assets/XAlIAMV.jpeg):** 2266 billion (updated 2026-01-12 11AM UTC)  
+**[ICESat-2 Shot Count Estimate](./assets/XAlIAMV.jpeg):** 2266 billion (updated 2026-01-12 12PM UTC)  
